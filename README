@@ -3,7 +3,7 @@ Language::Dashrep
 Dashrep is a versatile descriptive programming language based on hyphenated phrases (such as "rectangle-outline-attention-begin") being successively expanded into replacement text.  The resulting expanded text can be an HTML web page, an XML file, a JavaScript program, a boilerplate-based document, etc.  It is a much more flexible alternative to using a template language.  See www.Dashrep.org for details.
 
 
-Version 1.00
+Version 1.10
 
 
 INSTALLATION

@@ -4,3 +4,10 @@ Revision history for Language::Dashrep
         First version, released after many years of
         development and personal use by Richard Fobes,
         author of The Creative Problem Solver's Toolbox.
+
+1.10    2009-October-12
+        Second version, adds new "dashrep_delete" function,
+        adds "count-of-list" , "first-item-in-list" ,
+        "last-item-in-list" , and "unique-value" operators.
+        Also allows "/---- comment here ----/" syntax (in
+        addition to "*---- comment here ----*" syntax).

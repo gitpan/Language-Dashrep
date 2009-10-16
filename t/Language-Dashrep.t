@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 36;
+use Test::More tests => 45;
 
 
 BEGIN { use_ok('Language::Dashrep'); };
@@ -61,6 +61,17 @@ ok( $one_if_ok eq 1, "verified name in list of phrase names" );
 
 
 #-------------------------------------------
+#  Test deleting hyphenated phrase.
+
+$numeric_return_value = &dashrep_define( "temporary-phrase" , "anything here" );
+
+$string_return_value = &dashrep_delete( "temporary-phrase" );
+ok( $numeric_return_value eq 1, 'deleted hyphenated phrase' );
+
+$string_return_value = &dashrep_get_replacement( "temporary-phrase" );
+ok( $string_return_value eq "", "attempt to retrieve deleted phrase" );
+
+#-------------------------------------------
 #  Specify Dashrep code that will be used in
 #  tests below.
 
@@ -76,9 +87,14 @@ test-of-special-operators:
 [-should-be-zero = [-zero-one-multiple: 0-]-]
 [-should-be-one = [-zero-one-multiple: 1-]-]
 [-should-be-multiple = [-zero-one-multiple: 2-]-]
+[-should-be-size-zero = [-count-of-list: -]-]
+[-should-be-size-one = [-count-of-list: 4-]-]
+[-should-be-size-three = [-count-of-list: 4,5,6-]-]
 [-should-be-count-zero = [-zero-one-multiple-count-of-list: -]-]
 [-should-be-count-one = [-zero-one-multiple-count-of-list: 12-]-]
 [-should-be-count-multiple = [-zero-one-multiple-count-of-list: [-list-of-numbers-]-]-]
+[-should-be-item-three = [-first-item-in-list: [-list-of-numbers-]-]-]
+[-should-be-item-four = [-last-item-in-list: [-list-of-numbers-]-]-]
 [-should-be-empty = [-empty-or-nonempty: -]-]
 [-should-be-nonempty = [-empty-or-nonempty: something-]-]
 [-item-one = waltz-]
@@ -88,11 +104,24 @@ test-of-special-operators:
 [-action-showothervoterranking-[-same-or-not-same: [-input-validated-participantid-]-[-users-participant-id-]-]-]
 [-should-be-sorted = [-sort-numbers: [-list-of-numbers-]-]-]
 [-test-counter = 17-]
+[-test-value = 3-]
 nothing else
+--------
+
+test-of-comment-delimiters:
+beginning text
+*---- comment text ----*
+middle text
+/---- comment text ----/
+ending text
 --------
 
 test-of-auto-increment:
 [-auto-increment: test-counter-]
+--------
+
+test-of-unique-value:
+[-unique-value: test-value-]
 --------
 
 non-breaking-space:
@@ -118,6 +147,7 @@ abc tab-here def tab-here ghi
 page-participants-list:
 [-create-list-named: participant-names-full-]
 [-auto-increment: test-counter-]
+[-unique-value: test-value-]
 format-begin-heading-level-1
 words-web-page-title
 format-end-heading-level-1
@@ -235,6 +265,15 @@ ok( $string_return_value eq "one", "test one operator" );
 $string_return_value = &dashrep_get_replacement( "should-be-multiple" );
 ok( $string_return_value eq "multiple", "test multiple operator" );
 
+$string_return_value = &dashrep_get_replacement( "should-be-size-zero" );
+ok( $string_return_value eq "0", "test list-size operator for zero" );
+
+$string_return_value = &dashrep_get_replacement( "should-be-size-one" );
+ok( $string_return_value eq "1", "test list-size operator for one" );
+
+$string_return_value = &dashrep_get_replacement( "should-be-size-three" );
+ok( $string_return_value eq "3", "test list-size operator for three" );
+
 $string_return_value = &dashrep_get_replacement( "should-be-count-zero" );
 ok( $string_return_value eq "zero", "test zero count operator" );
 
@@ -243,6 +282,12 @@ ok( $string_return_value eq "one", "test one count operator" );
 
 $string_return_value = &dashrep_get_replacement( "should-be-count-multiple" );
 ok( $string_return_value eq "multiple", "test multiple count operator" );
+
+$string_return_value = &dashrep_get_replacement( "should-be-item-three" );
+ok( $string_return_value eq "3", "test first item in list operator" );
+
+$string_return_value = &dashrep_get_replacement( "should-be-item-four" );
+ok( $string_return_value eq "4", "test last item in list operator" );
 
 $string_return_value = &dashrep_get_replacement( "should-be-empty" );
 ok( $string_return_value eq "empty", "test empty operator" );
@@ -262,6 +307,24 @@ ok( $string_return_value eq "3,4,7,12,13", "test sort operator" );
 $string_return_value = &dashrep_expand_parameters( "test-of-auto-increment" );
 $string_return_value = &dashrep_get_replacement( "test-counter" );
 ok( $string_return_value eq "18", "test auto-increment operator" );
+
+$string_return_value = &dashrep_expand_parameters( "test-of-unique-value" );
+$string_return_value = &dashrep_get_replacement( "test-value" );
+ok( $string_return_value ne "3", "test unique-value operator" );
+
+
+#-------------------------------------------
+#  Test comment delimiters.
+
+$string_return_value = &dashrep_get_replacement( "test-of-comment-delimiters" );
+if ( $string_return_value !~ /comment/ )
+{
+    $one_if_ok = 1 ;
+} else
+{
+    $one_if_ok = 0 ;
+}
+ok( $one_if_ok eq 1, "test comment delimiters" );
 
 
 #-------------------------------------------

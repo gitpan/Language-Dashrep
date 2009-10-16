@@ -14,11 +14,11 @@ Language::Dashrep - Dashrep is a versatile descriptive programming language base
 
 =head1 VERSION
 
-Version 1.00
+Version 1.10
 
 =cut
 
-our $VERSION = '1.00';
+our $VERSION = '1.10';
 
 =head1 SYNOPSIS
 
@@ -96,6 +96,8 @@ The following subroutines are exported.
 
 =head2 dashrep_get_list_of_phrases
 
+=head2 dashrep_delete
+
 =head2 dashrep_expand_parameters
 
 =head2 dashrep_expand_phrases
@@ -116,6 +118,7 @@ our @EXPORT = qw(
     dashrep_import_replacements
     dashrep_get_replacement
     dashrep_get_list_of_phrases
+    dashrep_delete
     dashrep_expand_parameters
     dashrep_expand_phrases
     dashrep_expand_phrases_except_special
@@ -290,16 +293,19 @@ sub dashrep_import_replacements
 
 #-----------------------------------------------
 #  Ignore comments that consist of, or are embedded
-#  in, strings of the following type: *------  -------*
+#  in, strings of the following types:
+#    *------  -------*
+#    /------  -------/
 
     $replacements_text_to_import =~ s/\*\-\-\-+\*/ /g ;
-    while ( $replacements_text_to_import =~ /^(.*?)(\*\-\-+)(.*)$/ )
+    $replacements_text_to_import =~ s/\/\-\-\-+\// /g ;
+    while ( $replacements_text_to_import =~ /^(.*?)([\*\/]\-\-+)(.*)$/ )
     {
         $text_before = $1 ;
         $dashrep_replacement{ "comments_ignored" } .= "  " . $2 ;
         $text_including_comment_end = $3 ;
         $text_after = "" ;
-        if ( $text_including_comment_end =~ /^(.*?\-\-+\*)(.*)$/ )
+        if ( $text_including_comment_end =~ /^(.*?\-\-+[\*\/])(.*)$/ )
         {
             $dashrep_replacement{ "comments_ignored" } .= $1 . "  " ;
             $text_after = $2 ;
@@ -502,6 +508,55 @@ sub dashrep_get_list_of_phrases
 }
 
 
+=head2 dashrep_delete
+
+Deletes the specified hyphenated phrase.
+
+First parameter is the hyphenated phrase.
+
+Return value is 1 if the deletion is
+successful.  Return value is zero if there
+is not exactly one parameter.
+
+=cut
+
+#-----------------------------------------------
+#-----------------------------------------------
+#                 dashrep_delete
+#-----------------------------------------------
+#-----------------------------------------------
+
+sub dashrep_delete
+{
+
+    my ( $phrase_name ) ;
+    my ( $expanded_text ) ;
+
+
+#-----------------------------------------------
+#  Delete the indicated phrase.
+
+    if ( scalar( @_ ) == 1 )
+    {
+        $phrase_name = $_[ 0 ] ;
+        $phrase_name =~ s/^ +// ;
+        $phrase_name =~ s/ +$// ;
+        delete( $dashrep_replacement{ $phrase_name } );
+    } else
+    {
+        carp "Warning: Call to dashrep_delete subroutine does not have exactly one parameter." ;
+        return 0 ;
+    }
+
+
+#-----------------------------------------------
+#  End of subroutine.
+
+    return 1 ;
+
+}
+
+
 =head2 dashrep_expand_parameters
 
 Parses a text string that is written in the
@@ -563,6 +618,7 @@ sub dashrep_expand_parameters
     my ( $text_parameter ) ;
     my ( $item_name ) ;
     my ( $name_for_count ) ;
+    my ( $text_for_value ) ;
     my ( @list ) ;
     my ( @list_of_sorted_numbers ) ;
     my ( @list_of_replacements_to_auto_increment ) ;
@@ -668,10 +724,57 @@ sub dashrep_expand_parameters
 
 
 #-----------------------------------------------
+#  Handle the count-of-list action.
+
+            if ( $action_name eq "count-of-list" )
+            {
+                @list = &dashrep_internal_split_delimited_items( $object_of_action ) ;
+                $count = $#list + 1 ;
+                if ( $count == 0 )
+                {
+                    $text_for_value = "0" ;
+                } else
+                {
+                    $text_for_value = $count ;
+                }
+                $replacement_text = $text_begin . $text_for_value . $text_end ;
+
+
+#-----------------------------------------------
+#  Handle the first-item-in-list action.
+
+            } elsif ( $action_name eq "first-item-in-list" )
+            {
+                @list = &dashrep_internal_split_delimited_items( $object_of_action ) ;
+                $count = $#list + 1 ;
+                $text_for_value = " " ;
+                if ( $count > 0 )
+                {
+                    $text_for_value = $list[ 0 ] ;
+                }
+                $replacement_text = $text_begin . $text_for_value . $text_end ;
+
+
+#-----------------------------------------------
+#  Handle the last-item-in-list action.
+
+            } elsif ( $action_name eq "last-item-in-list" )
+            {
+                @list = &dashrep_internal_split_delimited_items( $object_of_action ) ;
+                $count = $#list + 1 ;
+                $text_for_value = " " ;
+                if ( $count > 0 )
+                {
+                    $text_for_value = $list[ $#list ] ;
+                }
+                $replacement_text = $text_begin . $text_for_value . $text_end ;
+
+
+#-----------------------------------------------
 #  Handle the zero-one-multiple-count-of-list
 #  action.
 
-            if ( $action_name eq "zero-one-multiple-count-of-list" )
+            } elsif ( $action_name eq "zero-one-multiple-count-of-list" )
             {
                 @list = &dashrep_internal_split_delimited_items( $object_of_action ) ;
                 $count = $#list + 1 ;
@@ -758,6 +861,29 @@ sub dashrep_expand_parameters
                     $sorted_numbers = " " ;
                 }
                 $replacement_text = $text_begin . $sorted_numbers . $text_end ;
+
+
+#-----------------------------------------------
+#  Handle the unique-value action.
+#
+#  Currently this action is equivalent to the
+#  auto-increment action.
+#  It can be changed to accomodate a
+#  parallel-processing environment where the
+#  code here would assign values from separate
+#  blocks of numbers assigned to each
+#  processor/process.
+
+            } elsif ( $action_name =~ /^unique-value/ )
+            {
+                if ( exists( $dashrep_replacement{ $object_of_action } ) )
+                {
+                    $dashrep_replacement{ $object_of_action } = $dashrep_replacement{ $object_of_action } + 1 ;
+                } else
+                {
+                    $dashrep_replacement{ $object_of_action } = 1 ;
+                }
+                $replacement_text = $text_begin . " " . $text_end ;
 
 
 #-----------------------------------------------
