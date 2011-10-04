@@ -11,3 +11,15 @@ Revision history for Language::Dashrep
         "last-item-in-list" , and "unique-value" operators.
         Also allows "/---- comment here ----/" syntax (in
         addition to "*---- comment here ----*" syntax).
+
+2.30	2011-August
+        The most current version is now kept on GitHub
+        in the CPSolver account.
+        Many enhancements have been made to the GitHub
+        version and now those refinements are being copied
+        back to CPAN.
+        Primary development will continue at GitHub, and
+        this CPAN version will be updated less often.
+        The latest specs and documentation continue to be
+        kept at www.Dashrep.org.
+
