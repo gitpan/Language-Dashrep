@@ -782,6 +782,8 @@ if ( $string_return_value =~ /replaced content/ ) { $one_if_ok = 1; } else { $on
 if ( $one_if_ok == 1 ) { $test_OK_counter ++ };
 if ( $one_if_ok == 1 ) { $results_text .= $being_tested . "OK\n" } else { $results_text .= $being_tested . "ERROR\n\n" };
 
+# Subroutine dashrep_linewise_translate is NOT tested because it uses STDIN and STDOUT.
+
 
 #-------------------------------------------
 #  Test xml-to-dashrep translation.
@@ -837,8 +839,8 @@ close OUTFILE;
 
 
 #-------------------------------------------
-#  For CPAN version, un-comment following
-#  code.
+#  If all test results OK, indicate pass for
+#  CPAN module test.
 
 if ( $test_OK_counter == $test_number_count ) {
     pass("Passed all $test_OK_counter tests out of $test_number_count");

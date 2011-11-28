@@ -1,9 +1,9 @@
 package Language::Dashrep;
 
-
 use 5.010;
 use warnings;
 use strict;
+use Carp;
 require Exporter;
 
 
@@ -16,19 +16,19 @@ Language::Dashrep - Dashrep language translator/interpreter
 
 =head1 VERSION
 
-Version 2.30
+Version 2.31
 
 =cut
 
-our $VERSION = '2.30';
+our $VERSION = '2.31';
 
 
 =head1 SYNOPSIS
 
 The following sample code executes the Dashrep-language actions specified in the standard input file.
 
-    use Language::Dashrep;
-    &Language::Dashrep::dashrep_linewise_translate( );
+   use Language::Dashrep;
+   &Dashrep::dashrep_linewise_translate( );
 
 The module also supports direct access to functions that define Dashrep phrases, expand text that contains Dashrep phrases, and more.
 
@@ -261,7 +261,7 @@ sub dashrep_define
         $global_dashrep_replacement{ $phrase_name } = $expanded_text ;
     } else
     {
-        warn "Warning: Call to dashrep_define subroutine does not have exactly two parameters." ;
+       carp "Warning: Call to dashrep_define subroutine does not have exactly two parameters." ;
         return 0 ;
     }
 
@@ -319,7 +319,29 @@ sub dashrep_import_replacements
         $replacements_text_to_import = $_[ 0 ] ;
     } else
     {
-        warn "Warning: Call to dashrep_define subroutine does not have exactly one parameter." ;
+       carp "Warning: Call to dashrep_import_replacements subroutine does not have exactly one parameter." ;
+        return 0 ;
+    }
+    if ( not( defined( $replacements_text_to_import ) ) )
+    {
+        $replacements_text_to_import = "" ;
+        if ( $global_dashrep_replacement{ "dashrep-debug-trace-on-or-off" } eq "on" )
+        {
+            print "{{trace; imported zero definitions from empty text}}\n" ;
+        }
+    }
+
+
+#-----------------------------------------------
+#  If the supplied text is empty, indicate this
+#  case and return.
+
+    if ( $replacements_text_to_import !~ /[^ ]/ )
+    {
+        if ( $global_dashrep_replacement{ "dashrep-debug-trace-on-or-off" } eq "on" )
+        {
+            print "{{trace; imported zero definitions from empty text}}\n" ;
+        }
         return 0 ;
     }
 
@@ -338,10 +360,10 @@ sub dashrep_import_replacements
 
 
 #-----------------------------------------------
-#  Replace line breaks with spaces.
+#  Replace line breaks, and tabs, with spaces.
 
-    $replacements_text_to_import =~ s/[\n\r]/ /sg ;
-    $replacements_text_to_import =~ s/[\n\r]/ /sg ;
+    $replacements_text_to_import =~ s/[\n\r\t]+/ /sg ;
+    $replacements_text_to_import =~ s/[\n\r\t]+/ /sg ;
     $replacements_text_to_import =~ s/  +/ /sg ;
 
 
@@ -457,7 +479,7 @@ sub dashrep_import_replacements
             if ( $input_string eq $definition_name )
             {
                  $global_dashrep_replacement{ $definition_name } = "ERROR: Replacement for the hyphenated phrase:\n    " . $definition_name . "\n" . "includes itself, which would cause an endless replacement loop." . "\n" ;
-                 warn "Warning: Replacement for the hyphenated phrase:\n    " . $definition_name . "\n" . "includes itself, which would cause an endless replacement loop.". "\n" . "Error occurred " ;
+                carp "Warning: Replacement for the hyphenated phrase:\n    " . $definition_name . "\n" . "includes itself, which would cause an endless replacement loop.". "\n" . "Error occurred " ;
             } else
             {
                 if ( $global_dashrep_replacement{ $definition_name } ne "" )
@@ -574,7 +596,7 @@ sub dashrep_get_list_of_phrases
 
     if ( scalar( @_ ) != 0 )
     {
-        warn "Warning: Call to dashrep_define subroutine does not have exactly zero parameters." ;
+       carp "Warning: Call to dashrep_define subroutine does not have exactly zero parameters." ;
         @list_of_phrases = ( ) ;
         return @list_of_phrases ;
     }
@@ -620,7 +642,7 @@ sub dashrep_delete
         delete( $global_dashrep_replacement{ $phrase_name } );
     } else
     {
-        warn "Warning: Call to dashrep_delete subroutine does not have exactly one parameter." ;
+       carp "Warning: Call to dashrep_delete subroutine does not have exactly one parameter." ;
         return 0 ;
     }
 
@@ -678,7 +700,7 @@ sub dashrep_delete_all
         &initialize_special_phrases( ) ;
     } else
     {
-        warn "Warning: Call to dashrep_delete_all subroutine does not have exactly zero parameters." ;
+       carp "Warning: Call to dashrep_delete_all subroutine does not have exactly zero parameters." ;
         return 0 ;
     }
 
@@ -2113,7 +2135,7 @@ sub dashrep_xml_tags_to_dashrep
         $input_text = $_[ 0 ] ;
     } else
     {
-        warn "Warning: Call to xml_tags_to_dashrep subroutine does not have exactly one parameter." ;
+       carp "Warning: Call to xml_tags_to_dashrep subroutine does not have exactly one parameter." ;
         return 0 ;
     }
 
@@ -2537,7 +2559,7 @@ sub dashrep_top_level_action
         $input_text = $_[ 0 ] ;
     } else
     {
-        warn "Warning: Call to dashrep_top_level_action subroutine does not exactly one parameter." ;
+       carp "Warning: Call to dashrep_top_level_action subroutine does not have exactly one parameter." ;
         return 0 ;
     }
 
@@ -2554,7 +2576,7 @@ sub dashrep_top_level_action
     $global_nesting_level_of_file_actions ++ ;
     if ( $global_nesting_level_of_file_actions > 1 )
     {
-        warn "Warning: Call to dashrep_top_level_action subroutine called recursivley, which is not allowed." ;
+       carp "Warning: Call to dashrep_top_level_action subroutine called recursivley, which is not allowed." ;
         return 0 ;
     }
 
@@ -2855,12 +2877,19 @@ sub dashrep_top_level_action
     } elsif ( $input_text =~ /^ *get-definitions-from-file +([^ \[\]]+) *$/ )
     {
         $source_filename = $1 ;
+        $source_filename =~ s/[ \t]+//g ;
         if ( open ( INFILE , "<" . $source_filename ) )
         {
-            $possible_error_message .= "" ;
+            $possible_error_message = "" ;
         } else
         {
-            $possible_error_message .= " [file named " . $source_filename . " not found, or could not be opened]" ;
+            if ( -e $source_filename )
+            {
+                $possible_error_message .= " [file named " . $source_filename . " found, but could not be opened]" ;
+            } else
+            {
+                $possible_error_message .= " [file named " . $source_filename . " not found]" ;
+            }
         }
         if ( $possible_error_message eq "" )
         {
@@ -2869,14 +2898,18 @@ sub dashrep_top_level_action
             while( $input_line = <INFILE> )
             {
                 chomp( $input_line ) ;
-                $source_definitions .= $input_line . " " ;
+                if ( ( defined( $input_line ) ) && ( $input_line =~ /[^ ]/ ) )
+                {
+                    $source_definitions .= $input_line . " " ;
+                }
             }
+            close( INFILE ) ;
+            $numeric_return_value = &dashrep_import_replacements( $source_definitions ) ;
         }
         close( INFILE ) ;
-        &dashrep_import_replacements( $source_definitions ) ;
         if ( $global_dashrep_replacement{ "dashrep-action-trace-on-or-off" } eq "on" )
         {
-            print "{{trace; got definitions from file: " . $source_filename . "}}\n" ;
+            print "{{trace; imported " . $numeric_return_value . " definitions from file: " . $source_filename . "}}\n" ;
         }
         $input_text = "" ;
 
@@ -2914,6 +2947,7 @@ sub dashrep_top_level_action
         $qualifier = $1 ;
         $source_filename = $5 ;
         $target_filename = $6 ;
+        $source_filename =~ s/[ \t]+//g ;
         $target_filename =~ s/^.*[\\\/]// ;
         $target_filename =~ s/^\.+// ;
         if ( open ( INFILE , "<" . $source_filename ) )
@@ -2921,7 +2955,13 @@ sub dashrep_top_level_action
             $possible_error_message .= "" ;
         } else
         {
-            $possible_error_message .= " [file named " . $source_filename . " not found, or could not be opened]" ;
+            if ( -e $source_filename )
+            {
+                $possible_error_message .= " [file named " . $source_filename . " exists, but could not be opened]" ;
+            } else
+            {
+                $possible_error_message .= " [file named " . $source_filename . " not found]" ;
+            }
         }
         if ( open ( OUTFILE , ">" . $target_filename ) )
         {
@@ -2947,20 +2987,26 @@ sub dashrep_top_level_action
                     {
                         $all_lines = "" ;
                         $line_count = 0 ;
-                        while( $input_line = <STDIN> )
+                        while( $input_line = <INFILE> )
                         {
                             chomp( $input_line );
                             if ( $input_line =~ /^ *dashrep-definitions-end *$/ )
                             {
                                 last;
                             }
-                            $all_lines .= $input_line . " " ;
+                            if ( ( $input_line =~ /[^ ]/ ) && ( defined( $input_line ) ) )
+                            {
+                                $all_lines .= $input_line . " " ;
+                            }
                             $line_count ++ ;
                         }
-                        $numeric_return_value = &dashrep_import_replacements( $all_lines );
-                        if ( ( $global_dashrep_replacement{ "dashrep-linewise-trace-on-or-off" } eq "on" ) && ( $input_line =~ /[^ ]/ ) )
+                        if ( $all_lines =~ /[^ ]/ )
                         {
-                            print "{{trace; definitions found, got definitions from " . $line_count . " lines}}\n" ;
+                            $numeric_return_value = &dashrep_import_replacements( $all_lines );
+                            if ( ( $global_dashrep_replacement{ "dashrep-linewise-trace-on-or-off" } eq "on" ) && ( $input_line =~ /[^ ]/ ) )
+                            {
+                                print "{{trace; definitions found, imported " . $numeric_return_value . " definitions from " . $line_count . " lines}}\n" ;
+                            }
                         }
                         $lines_to_translate = 0 ;
                     } else
@@ -3152,6 +3198,16 @@ sub dashrep_linewise_translate
 
 
 #-----------------------------------------------
+#  Ensure there is no input text.
+
+    if ( scalar( @_ ) != 0 )
+    {
+       carp "Warning: Call to dashrep_top_level_action subroutine does not have exactly zero parameters." ;
+        return 0 ;
+    }
+
+
+#-----------------------------------------------
 #  Read each line from the input file.
 
     while( $input_line = <STDIN> )
@@ -3177,13 +3233,19 @@ sub dashrep_linewise_translate
                 {
                     last;
                 }
-                $all_lines .= $input_line . " " ;
+                if ( ( $input_line =~ /[^ ]/ ) && ( defined( $input_line ) ) )
+                {
+                    $all_lines .= $input_line . " " ;
+                }
                 $line_count ++ ;
             }
-            $numeric_return_value = &dashrep_import_replacements( $all_lines );
-            if ( ( $global_dashrep_replacement{ "dashrep-linewise-trace-on-or-off" } eq "on" ) && ( $input_line =~ /[^ ]/ ) )
+            if ( $all_lines =~ /[^ ]/ )
             {
-                print "{{trace; definition line: " . $input_line . " ; got definitions from " . $line_count . " lines}}\n" ;
+                $numeric_return_value = &dashrep_import_replacements( $all_lines );
+                if ( ( $global_dashrep_replacement{ "dashrep-linewise-trace-on-or-off" } eq "on" ) && ( $input_line =~ /[^ ]/ ) )
+                {
+                    print "{{trace; definition line: " . $input_line . " ; imported " . $numeric_return_value . " definitions from " . $line_count . " lines}}\n" ;
+                }
             }
 
 
@@ -3267,7 +3329,7 @@ sub dashrep_internal_endless_loop_info
             $highest_usage_item_name = $item_name ;
         }
     }
-    warn "Too many cycles of replacement (" . $global_endless_loop_counter . ").\n" . "Hyphenated phrase with highest replacement count (" . $highest_usage_counter . ") is:\n" . "    " . $highest_usage_item_name . "\n" ;
+   carp "Too many cycles of replacement (" . $global_endless_loop_counter . ").\n" . "Hyphenated phrase with highest replacement count (" . $highest_usage_counter . ") is:\n" . "    " . $highest_usage_item_name . "\n" ;
 
 
 #-----------------------------------------------
