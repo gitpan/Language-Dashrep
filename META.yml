@@ -1,7 +1,7 @@
 ---
 abstract: 'Dashrep language translator/interpreter'
 author:
-  - 'Richard Fobes <fobes@CPAN.org>'
+  - 'Richard Fobes <prog@SolutionsCreative.com>'
 build_requires:
   Test::More: 0
 configure_requires:
@@ -16,7 +16,7 @@ name: Language-Dashrep
 provides:
   Language::Dashrep:
     file: lib/Language/Dashrep.pm
-    version: 2.31
+    version: 2.32
 resources:
   license: http://opensource.org/licenses/artistic-license.php
-version: 2.31
+version: 2.32

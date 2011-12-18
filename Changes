@@ -25,3 +25,7 @@ Revision history for Language::Dashrep
 
 2.31    2011-November-24
         Minor enhancements, to match with GitHub version.
+
+2.32    2011-November-30
+        In top-level and linewise actions, replace newline
+        and linefeed and related codes with spaces.

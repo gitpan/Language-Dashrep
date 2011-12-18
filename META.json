@@ -1,7 +1,7 @@
 {
    "abstract" : "Dashrep language translator/interpreter",
    "author" : [
-      "Richard Fobes <fobes@CPAN.org>"
+      "Richard Fobes <prog@SolutionsCreative.com>"
    ],
    "dynamic_config" : 1,
    "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.112150",
@@ -28,7 +28,7 @@
    "provides" : {
       "Language::Dashrep" : {
          "file" : "lib/Language/Dashrep.pm",
-         "version" : "2.31"
+         "version" : "2.32"
       }
    },
    "release_status" : "stable",
@@ -37,5 +37,5 @@
          "http://opensource.org/licenses/artistic-license.php"
       ]
    },
-   "version" : "2.31"
+   "version" : "2.32"
 }
