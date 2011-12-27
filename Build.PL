@@ -4,7 +4,7 @@ use Module::Build;
 
 my $builder = Module::Build->new(
     module_name         => 'Language::Dashrep',
-    license             => 'artistic',
+    license             => 'artistic_2',
     dist_author         => 'Richard Fobes <prog@SolutionsCreative.com>',
     dist_version_from   => 'lib/Language/Dashrep.pm',
     build_requires => {

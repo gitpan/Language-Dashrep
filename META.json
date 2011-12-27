@@ -6,7 +6,7 @@
    "dynamic_config" : 1,
    "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.112150",
    "license" : [
-      "artistic_1"
+      "artistic_2"
    ],
    "meta-spec" : {
       "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
@@ -28,14 +28,14 @@
    "provides" : {
       "Language::Dashrep" : {
          "file" : "lib/Language/Dashrep.pm",
-         "version" : "2.32"
+         "version" : "2.33"
       }
    },
    "release_status" : "stable",
    "resources" : {
       "license" : [
-         "http://opensource.org/licenses/artistic-license.php"
+         "http://opensource.org/licenses/artistic-license-2.0.php"
       ]
    },
-   "version" : "2.32"
+   "version" : "2.33"
 }
